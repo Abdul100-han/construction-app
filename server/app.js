@@ -1,8 +1,31 @@
-// ... (previous code)
+const express = require('express')
+const app = express()
+const cors = require('cors');
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+
+
+dotenv.config({ path: './config/config.env' });
+
+// dotenv.config();
+console.log('MONGO_URI:', process.env.MONGO_URI); // Add this
+
+
+// Body parser middleware
+app.use(express.json());
+
 
 // Route files
 const auth = require('./routes/auth');
 const dashboard = require('./routes/dashboard');
+
+// Database connection
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.log(err));
 
 // Mount routers
 app.use('/api/v1/auth', auth);
