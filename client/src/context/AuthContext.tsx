@@ -61,11 +61,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data } = await api.post('/auth/register', userData);
     setCookie('token', data.token, { maxAge: 60 * 60 * 24 * 30 }); // 30 days
     setUser(data.user);
-    router.push(`/dashboard/${data.user.role}`);
+    // router.push(`/dashboard/${data.user.role}`);
+    router.push(`/dashboard/${data.user.role.toLowerCase()}`); // Ensure lowercase
+  console.log('Redirecting to:', `/dashboard/${data.user.role.toLowerCase()}`);
   };
 
   const logout = async () => {
-    await api.post('/auth/logout');
+    await api.get('/auth/logout');
     deleteCookie('token');
     setUser(null);
     router.push('/login');

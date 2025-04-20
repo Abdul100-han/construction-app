@@ -90,14 +90,25 @@ const sendTokenResponse = (user, statusCode, res) => {
     options.secure = true;
   }
 
-  res
-    .status(statusCode)
-    .cookie('token', token, options)
-    .json({
-      success: true,
-      token,
+  // res
+  //   .status(statusCode)
+  //   .cookie('token', token, options)
+  //   .json({
+  //     success: true,
+  //     token,
+  //     role: user.role
+  //   });
+  res.status(statusCode).cookie('token', token, options).json({
+    success: true,
+    token,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
       role: user.role
-    });
+    }
+  });
+  
 };
 
 

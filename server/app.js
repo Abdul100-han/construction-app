@@ -1,25 +1,23 @@
-const express = require('express')
-const app = express()
+const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 
+const app = express();
 
+// ✅ Load environment variables
 dotenv.config({ path: './config/config.env' });
 
-// dotenv.config();
-console.log('MONGO_URI:', process.env.MONGO_URI); // Add this
+// ✅ Enable CORS for frontend
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true, // only if using cookies/auth headers
+}));
 
-
-// Body parser middleware
+// ✅ Body parser middleware
 app.use(express.json());
 
-
-// Route files
-const auth = require('./routes/auth');
-const dashboard = require('./routes/dashboard');
-
-// Database connection
+// ✅ Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -27,11 +25,15 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.log(err));
 
-// Mount routers
+// ✅ Import routes
+const auth = require('./routes/auth');
+const dashboard = require('./routes/dashboard');
+
+// ✅ Mount routes
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/dashboard', dashboard);
 
-// Error handling middleware (add at the end)
+// ✅ Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
@@ -40,5 +42,6 @@ app.use((err, req, res, next) => {
   });
 });
 
+// ✅ Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

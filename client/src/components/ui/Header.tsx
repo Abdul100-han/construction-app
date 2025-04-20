@@ -4,7 +4,9 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Header() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, loading } = useAuth();
+
+  if (loading) return null; // 👈🏽 Wait until we know the auth state
 
   return (
     <header className="bg-white shadow-sm">

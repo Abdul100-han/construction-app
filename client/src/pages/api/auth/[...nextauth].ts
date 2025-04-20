@@ -18,14 +18,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           return res.status(200).json(data);
         }
         
+        // if (req.query.nextauth?.includes('logout')) {
+        //   const { data } = await axios.post(`${baseURL}/auth/logout`, {}, {
+        //     headers: {
+        //       Authorization: `Bearer ${req.cookies.token}`
+        //     }
+        //   });
+        //   return res.status(200).json(data);
+        // }
         if (req.query.nextauth?.includes('logout')) {
-          const { data } = await axios.post(`${baseURL}/auth/logout`, {}, {
+          const { data } = await axios.get(`${baseURL}/auth/logout`, {
             headers: {
               Authorization: `Bearer ${req.cookies.token}`
             }
           });
           return res.status(200).json(data);
         }
+        
         break;
 
       case 'GET':

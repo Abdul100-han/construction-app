@@ -1,3 +1,4 @@
+// src/components/ui/ProtectedRoute.tsx
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -24,8 +25,12 @@ export function ProtectedRoute({
     }
   }, [loading, isAuthenticated, user, router, allowedRoles]);
 
-  if (loading || !isAuthenticated || (user && !allowedRoles.includes(user.role))) {
+  if (loading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
+
+  if (!isAuthenticated || (user && !allowedRoles.includes(user.role))) {
+    return null;
   }
 
   return <>{children}</>;
