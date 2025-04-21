@@ -46,31 +46,58 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
       }
     };
-
     loadUser();
   }, []);
 
   const login = async (email: string, password: string) => {
-    const { data } = await api.post('/auth/login', { email, password });
-    setCookie('token', data.token, { maxAge: 60 * 60 * 24 * 30 }); // 30 days
-    setUser(data.user);
-    router.push(`/dashboard/${data.user.role}`);
+   
+    try {
+      console.log('Attempting login with:', email, password);
+      const { data } = await api.post('/auth/login', { email, password });
+      
+      // setCookie('token', data.token, {
+      //   maxAge: 30 * 24 * 60 * 60,
+      //   path: '/',
+      //   sameSite: 'lax',
+      //   secure: process.env.NODE_ENV === 'production'
+      // });
+
+      setUser(data.user);
+      router.push(`/dashboard/${data.user.role.toLowerCase()}`);
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   };
 
   const register = async (userData: RegisterData) => {
-    const { data } = await api.post('/auth/register', userData);
-    setCookie('token', data.token, { maxAge: 60 * 60 * 24 * 30 }); // 30 days
-    setUser(data.user);
-    // router.push(`/dashboard/${data.user.role}`);
-    router.push(`/dashboard/${data.user.role.toLowerCase()}`); // Ensure lowercase
-  console.log('Redirecting to:', `/dashboard/${data.user.role.toLowerCase()}`);
+    try {
+      const { data } = await api.post('/auth/register', userData);
+      
+      // setCookie('token', data.token, {
+      //   maxAge: 30 * 24 * 60 * 60,
+      //   path: '/',
+      //   sameSite: 'lax',
+      //   secure: process.env.NODE_ENV === 'production'
+      // });
+
+      setUser(data.user);
+      router.push(`/dashboard/${data.user.role.toLowerCase()}`);
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
   };
 
   const logout = async () => {
-    await api.get('/auth/logout');
-    deleteCookie('token');
-    setUser(null);
-    router.push('/login');
+    try {
+      await api.get('/auth/logout');
+      deleteCookie('token');
+      setUser(null);
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (

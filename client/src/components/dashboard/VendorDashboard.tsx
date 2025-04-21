@@ -1,69 +1,97 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import api from '@/lib/api';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
+import api from "@/lib/api";
 
 export default function VendorDashboard() {
+  const { user, loading } = useAuth();
+
   const [products, setProducts] = useState<any[]>([]);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: ''
+    name: "",
+    description: "",
+    price: "",
   });
-  const { user } = useAuth();
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const { data } = await api.get('/products');
-        setProducts(data.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchProducts();
-  }, []);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchProducts = async () => {
     try {
-      const { data } = await api.post('/products', formData);
-      setProducts([...products, data.data]);
-      setFormData({
-        name: '',
-        description: '',
-        price: ''
-      });
+      const { data } = await api.get("/products");
+      setProducts(data.data);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching products:", err);
+    } finally {
+      setLoadingProducts(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  useEffect(() => {
+    if (user && user.id) {
+      fetchProducts();
+    }
+  }, [user]);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return; // ✅ early exit for TypeScript safety
+
+    try {
+      const { data } = await api.post("/products", formData);
+
+      const productWithVendor = {
+        ...data.data,
+        vendor: { _id: user.id },
+      };
+
+      setProducts((prev) => [...prev, productWithVendor]);
+
+      setFormData({ name: "", description: "", price: "" });
+    } catch (err) {
+      console.error("Error adding product:", err);
+    }
   };
 
   const deleteProduct = async (id: string) => {
     try {
       await api.delete(`/products/${id}`);
-      setProducts(products.filter(product => product._id !== id));
+      setProducts((prev) => prev.filter((p) => p._id !== id));
     } catch (err) {
-      console.error(err);
+      console.error("Error deleting product:", err);
     }
   };
+
+  // 🔁 Show loader until context fully resolves
+  if (loading || !user) {
+    return <div className="p-8 text-gray-600">Loading vendor dashboard...</div>;
+  }
+
+  const userProducts = products.filter((p) => p.vendor?._id === user.id);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl font-bold text-gray-900">Welcome Vendor!</h1>
-      <p className="mt-2 text-balack">Manage your listings.</p>
-      
+      <p className="mt-2 text-black">Manage your listings.</p>
+
       <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* Add Product Form */}
         <div>
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Add New Product</h2>
+          <h2 className="text-lg font-medium text-gray-900 mb-4">
+            Add New Product
+          </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Product Name
               </label>
               <input
@@ -71,13 +99,16 @@ export default function VendorDashboard() {
                 name="name"
                 id="name"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 value={formData.name}
                 onChange={handleChange}
+                className="mt-1 block w-full border rounded-md py-2 px-3"
               />
             </div>
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Description
               </label>
               <textarea
@@ -85,13 +116,16 @@ export default function VendorDashboard() {
                 id="description"
                 rows={3}
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 value={formData.description}
                 onChange={handleChange}
+                className="mt-1 block w-full border rounded-md py-2 px-3"
               />
             </div>
             <div>
-              <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="price"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Price
               </label>
               <input
@@ -101,30 +135,37 @@ export default function VendorDashboard() {
                 min="0"
                 step="0.01"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 value={formData.price}
                 onChange={handleChange}
+                className="mt-1 block w-full border rounded-md py-2 px-3"
               />
             </div>
             <button
               type="submit"
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700"
             >
               Add Product
             </button>
           </form>
         </div>
-        
+
+        {/* Product List */}
         <div>
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Your Products</h2>
-          {products.filter(p => p.vendor._id === user?.id).length === 0 ? (
+          <h2 className="text-lg font-medium text-gray-900 mb-4">
+            Your Products
+          </h2>
+          {loadingProducts ? (
+            <p className="text-gray-500">Loading products...</p>
+          ) : userProducts.length === 0 ? (
             <p className="text-gray-500">No products listed yet</p>
           ) : (
             <div className="space-y-4">
-              {products.filter(p => p.vendor._id === user?.id).map((product) => (
+              {userProducts.map((product) => (
                 <div key={product._id} className="border rounded-md p-4">
                   <div className="flex justify-between">
-                    <h3 className="font-medium text-gray-900">{product.name}</h3>
+                    <h3 className="font-medium text-gray-900">
+                      {product.name}
+                    </h3>
                     <button
                       onClick={() => deleteProduct(product._id)}
                       className="text-red-600 hover:text-red-800"
@@ -133,7 +174,9 @@ export default function VendorDashboard() {
                     </button>
                   </div>
                   <p className="text-gray-600 mt-1">{product.description}</p>
-                  <p className="text-gray-900 font-medium mt-2">${product.price.toFixed(2)}</p>
+                  <p className="text-gray-900 font-medium mt-2">
+                    ${parseFloat(product.price).toFixed(2)}
+                  </p>
                 </div>
               ))}
             </div>

@@ -2,38 +2,40 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
+const path = require('path');
 
-const app = express();
-
-// ✅ Load environment variables
+// Load env vars
 dotenv.config({ path: './config/config.env' });
 
-// ✅ Enable CORS for frontend
+// Create Express app
+const app = express();
+
+// CORS
 app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true, // only if using cookies/auth headers
+  origin: 'http://localhost:3000', // Your frontend
+  credentials: true, // Allow cookies to be sent
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ✅ Body parser middleware
+// Body parser
 app.use(express.json());
 
-// ✅ Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.log(err));
+// Cookie parser
+app.use(cookieParser());
 
-// ✅ Import routes
-const auth = require('./routes/auth');
-const dashboard = require('./routes/dashboard');
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.error('MongoDB Connection Error:', err));
 
-// ✅ Mount routes
-app.use('/api/v1/auth', auth);
-app.use('/api/v1/dashboard', dashboard);
+// Routes
+app.use('/api/v1/auth', require('./routes/auth'));
+app.use('/api/v1/dashboard', require('./routes/dashboard'));
+app.use('/api/v1/products', require('./routes/products'));
 
-// ✅ Global error handler
+// Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
@@ -42,6 +44,5 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ✅ Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

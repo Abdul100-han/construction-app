@@ -5,5 +5,10 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
   const { login } = useAuth();
-  return <AuthForm type="login" onSubmit={login} />;
+  const handleLogin = async (data: { email: string; password: string }) => {
+    const { email, password } = data;
+    await login(email, password);
+  };
+  // return <AuthForm type="login" onSubmit={login} />;
+  return <AuthForm type="login" onSubmit={handleLogin} />;
 }
