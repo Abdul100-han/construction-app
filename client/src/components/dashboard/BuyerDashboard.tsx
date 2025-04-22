@@ -33,7 +33,7 @@ export default function BuyerDashboard() {
               <div key={product._id} className="border rounded-md p-4">
                 <h3 className="font-medium text-gray-900">{product.name}</h3>
                 <p className="text-gray-600 mt-1">{product.description}</p>
-                <p className="text-gray-900 font-medium mt-2">${product.price.toFixed(2)}</p>
+                <p className="text-gray-900 font-medium mt-2">₦{product.price.toFixed(2)}</p>
                 <p className="text-sm text-gray-500 mt-2">Sold by: {product.vendor.name}</p>
               </div>
             ))}
