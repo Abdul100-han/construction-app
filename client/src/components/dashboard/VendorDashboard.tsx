@@ -175,7 +175,7 @@ export default function VendorDashboard() {
                   </div>
                   <p className="text-gray-600 mt-1">{product.description}</p>
                   <p className="text-gray-900 font-medium mt-2">
-                    ${parseFloat(product.price).toFixed(2)}
+                  ₦{parseFloat(product.price).toFixed(2)}
                   </p>
                 </div>
               ))}
