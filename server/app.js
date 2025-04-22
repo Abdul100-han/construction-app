@@ -11,9 +11,20 @@ dotenv.config({ path: './config/config.env' });
 // Create Express app
 const app = express();
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://client-eight-blush-70.vercel.app'
+];
+
 // CORS
 app.use(cors({
-  origin: 'http://localhost:3000', // Your frontend
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true, // Allow cookies to be sent
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
